@@ -1,0 +1,6 @@
+[deps]
+JExi = "6c138e09-6d40-4d74-9105-bc5e8df82c36"
+Printf = "de0858da-6303-5e67-8744-51eddeeeb8d7"
+
+[sources]
+JExi = {path = "../.."}

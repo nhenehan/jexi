@@ -1,0 +1,7 @@
+#!/usr/bin/env bash
+# The jexi command line: runs JExi.CLI.main in this repository's environment.
+# Env: JEXI_JULIA  the julia to run (default: julia on PATH)
+set -euo pipefail
+ROOT="$(cd "$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")/.." && pwd)"
+exec "${JEXI_JULIA:-julia}" --startup-file=no --history-file=no --project="$ROOT" \
+    -e 'using JExi; exit(JExi.CLI.main(ARGS))' -- "$@"

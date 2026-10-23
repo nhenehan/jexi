@@ -1,0 +1,347 @@
+schemaId: None
+uris:
+  [0] "" local-names ["batchId", "lang", "source", "ticket"]
+  [1] "http://www.w3.org/XML/1998/namespace" local-names ["base", "id", "lang", "space"]
+  [2] "http://www.w3.org/2001/XMLSchema-instance" local-names ["nil", "type"]
+  [3] "http://www.w3.org/2001/XMLSchema" local-names ["ENTITIES", "ENTITY", "ID", "IDREF", "IDREFS", "NCName", "NMTOKEN", "NMTOKENS", "NOTATION", "Name", "QName", "anySimpleType", "anyType", "anyURI", "base64Binary", "boolean", "byte", "date", "dateTime", "decimal", "double", "duration", "float", "gDay", "gMonth", "gMonthDay", "gYear", "gYearMonth", "hexBinary", "int", "integer", "language", "long", "negativeInteger", "nonNegativeInteger", "nonPositiveInteger", "normalizedString", "positiveInteger", "short", "string", "time", "token", "unsignedByte", "unsignedInt", "unsignedLong", "unsignedShort"]
+  [4] "urn:rexi:interop:poly" local-names ["Acknowledged", "Alert", "AlertType", "Code", "Entry", "EntryType", "Envelope", "EnvelopeType", "Severity", "StatusMessage", "StatusMessageType", "Summary", "TempReading", "TempReadingType", "Unit", "Value"]
+global elements:
+  element 0: {urn:rexi:interop:poly}Envelope type 46
+elements:
+  [0] {urn:rexi:interop:poly}Envelope type 46 nillable false global true
+  [1] {urn:rexi:interop:poly}Entry type 47 nillable false global false
+  [2] {urn:rexi:interop:poly}Summary type 39 nillable false global false
+  [3] {urn:rexi:interop:poly}TempReading type 48 nillable false global false
+  [4] {urn:rexi:interop:poly}StatusMessage type 49 nillable false global false
+  [5] {urn:rexi:interop:poly}Alert type 50 nillable false global false
+  [6] {urn:rexi:interop:poly}Value type 20 nillable false global false
+  [7] {urn:rexi:interop:poly}Unit type 39 nillable false global false
+  [8] {urn:rexi:interop:poly}Code type 39 nillable false global false
+  [9] {urn:rexi:interop:poly}Severity type 39 nillable false global false
+  [10] {urn:rexi:interop:poly}Acknowledged type 15 nillable false global false
+types:
+  [0] {http://www.w3.org/2001/XMLSchema}ENTITIES grammar 0 empty-grammar 1 datatype Some(List { item: 1 }) typecastable false
+  [1] {http://www.w3.org/2001/XMLSchema}ENTITY grammar 2 empty-grammar 3 datatype Some(String { whitespace: Collapse }) typecastable false
+  [2] {http://www.w3.org/2001/XMLSchema}ID grammar 4 empty-grammar 5 datatype Some(String { whitespace: Collapse }) typecastable false
+  [3] {http://www.w3.org/2001/XMLSchema}IDREF grammar 6 empty-grammar 7 datatype Some(String { whitespace: Collapse }) typecastable false
+  [4] {http://www.w3.org/2001/XMLSchema}IDREFS grammar 8 empty-grammar 9 datatype Some(List { item: 3 }) typecastable false
+  [5] {http://www.w3.org/2001/XMLSchema}NCName grammar 10 empty-grammar 11 datatype Some(String { whitespace: Collapse }) typecastable true
+  [6] {http://www.w3.org/2001/XMLSchema}NMTOKEN grammar 12 empty-grammar 13 datatype Some(String { whitespace: Collapse }) typecastable false
+  [7] {http://www.w3.org/2001/XMLSchema}NMTOKENS grammar 14 empty-grammar 15 datatype Some(List { item: 6 }) typecastable false
+  [8] {http://www.w3.org/2001/XMLSchema}NOTATION grammar 16 empty-grammar 17 datatype Some(String { whitespace: Collapse }) typecastable false
+  [9] {http://www.w3.org/2001/XMLSchema}Name grammar 18 empty-grammar 19 datatype Some(String { whitespace: Collapse }) typecastable true
+  [10] {http://www.w3.org/2001/XMLSchema}QName grammar 20 empty-grammar 21 datatype Some(String { whitespace: Collapse }) typecastable false
+  [11] {http://www.w3.org/2001/XMLSchema}anySimpleType grammar 22 empty-grammar 23 datatype Some(String { whitespace: Preserve }) typecastable true
+  [12] {http://www.w3.org/2001/XMLSchema}anyType grammar 24 empty-grammar 25 datatype None typecastable true
+  [13] {http://www.w3.org/2001/XMLSchema}anyURI grammar 26 empty-grammar 27 datatype Some(String { whitespace: Collapse }) typecastable false
+  [14] {http://www.w3.org/2001/XMLSchema}base64Binary grammar 28 empty-grammar 29 datatype Some(Base64Binary) typecastable false
+  [15] {http://www.w3.org/2001/XMLSchema}boolean grammar 30 empty-grammar 31 datatype Some(Boolean) typecastable false
+  [16] {http://www.w3.org/2001/XMLSchema}byte grammar 32 empty-grammar 33 datatype Some(NBit { min: -128, bits: 8 }) typecastable false
+  [17] {http://www.w3.org/2001/XMLSchema}date grammar 34 empty-grammar 35 datatype Some(DateTime(Date)) typecastable false
+  [18] {http://www.w3.org/2001/XMLSchema}dateTime grammar 36 empty-grammar 37 datatype Some(DateTime(DateTime)) typecastable false
+  [19] {http://www.w3.org/2001/XMLSchema}decimal grammar 38 empty-grammar 39 datatype Some(Decimal) typecastable true
+  [20] {http://www.w3.org/2001/XMLSchema}double grammar 40 empty-grammar 41 datatype Some(Float) typecastable false
+  [21] {http://www.w3.org/2001/XMLSchema}duration grammar 42 empty-grammar 43 datatype Some(String { whitespace: Collapse }) typecastable false
+  [22] {http://www.w3.org/2001/XMLSchema}float grammar 44 empty-grammar 45 datatype Some(Float) typecastable false
+  [23] {http://www.w3.org/2001/XMLSchema}gDay grammar 46 empty-grammar 47 datatype Some(DateTime(GDay)) typecastable false
+  [24] {http://www.w3.org/2001/XMLSchema}gMonth grammar 48 empty-grammar 49 datatype Some(DateTime(GMonth)) typecastable false
+  [25] {http://www.w3.org/2001/XMLSchema}gMonthDay grammar 50 empty-grammar 51 datatype Some(DateTime(GMonthDay)) typecastable false
+  [26] {http://www.w3.org/2001/XMLSchema}gYear grammar 52 empty-grammar 53 datatype Some(DateTime(GYear)) typecastable false
+  [27] {http://www.w3.org/2001/XMLSchema}gYearMonth grammar 54 empty-grammar 55 datatype Some(DateTime(GYearMonth)) typecastable false
+  [28] {http://www.w3.org/2001/XMLSchema}hexBinary grammar 56 empty-grammar 57 datatype Some(HexBinary) typecastable false
+  [29] {http://www.w3.org/2001/XMLSchema}int grammar 58 empty-grammar 59 datatype Some(Integer) typecastable true
+  [30] {http://www.w3.org/2001/XMLSchema}integer grammar 60 empty-grammar 61 datatype Some(Integer) typecastable true
+  [31] {http://www.w3.org/2001/XMLSchema}language grammar 62 empty-grammar 63 datatype Some(String { whitespace: Collapse }) typecastable false
+  [32] {http://www.w3.org/2001/XMLSchema}long grammar 64 empty-grammar 65 datatype Some(Integer) typecastable true
+  [33] {http://www.w3.org/2001/XMLSchema}negativeInteger grammar 66 empty-grammar 67 datatype Some(Integer) typecastable false
+  [34] {http://www.w3.org/2001/XMLSchema}nonNegativeInteger grammar 68 empty-grammar 69 datatype Some(UnsignedInteger) typecastable true
+  [35] {http://www.w3.org/2001/XMLSchema}nonPositiveInteger grammar 70 empty-grammar 71 datatype Some(Integer) typecastable true
+  [36] {http://www.w3.org/2001/XMLSchema}normalizedString grammar 72 empty-grammar 73 datatype Some(String { whitespace: Replace }) typecastable true
+  [37] {http://www.w3.org/2001/XMLSchema}positiveInteger grammar 74 empty-grammar 75 datatype Some(UnsignedInteger) typecastable false
+  [38] {http://www.w3.org/2001/XMLSchema}short grammar 76 empty-grammar 77 datatype Some(Integer) typecastable true
+  [39] {http://www.w3.org/2001/XMLSchema}string grammar 78 empty-grammar 79 datatype Some(String { whitespace: Preserve }) typecastable true
+  [40] {http://www.w3.org/2001/XMLSchema}time grammar 80 empty-grammar 81 datatype Some(DateTime(Time)) typecastable false
+  [41] {http://www.w3.org/2001/XMLSchema}token grammar 82 empty-grammar 83 datatype Some(String { whitespace: Collapse }) typecastable true
+  [42] {http://www.w3.org/2001/XMLSchema}unsignedByte grammar 84 empty-grammar 85 datatype Some(NBit { min: 0, bits: 8 }) typecastable false
+  [43] {http://www.w3.org/2001/XMLSchema}unsignedInt grammar 86 empty-grammar 87 datatype Some(UnsignedInteger) typecastable true
+  [44] {http://www.w3.org/2001/XMLSchema}unsignedLong grammar 88 empty-grammar 89 datatype Some(UnsignedInteger) typecastable true
+  [45] {http://www.w3.org/2001/XMLSchema}unsignedShort grammar 90 empty-grammar 91 datatype Some(UnsignedInteger) typecastable true
+  [46] {urn:rexi:interop:poly}EnvelopeType grammar 92 empty-grammar 93 datatype None typecastable false
+  [47] {urn:rexi:interop:poly}EntryType grammar 94 empty-grammar 95 datatype None typecastable false
+  [48] {urn:rexi:interop:poly}TempReadingType grammar 96 empty-grammar 97 datatype None typecastable false
+  [49] {urn:rexi:interop:poly}StatusMessageType grammar 98 empty-grammar 99 datatype None typecastable false
+  [50] {urn:rexi:interop:poly}AlertType grammar 100 empty-grammar 101 datatype None typecastable false
+grammars:
+  grammar 0: rules 0..2
+    rule 0: [0: CH -> 1]
+    rule 1: [0: EE -> 4294967295]
+  grammar 1: rules 2..3
+    rule 2: [0: EE -> 4294967295]
+  grammar 2: rules 3..5
+    rule 3: [0: CH -> 4]
+    rule 4: [0: EE -> 4294967295]
+  grammar 3: rules 5..6
+    rule 5: [0: EE -> 4294967295]
+  grammar 4: rules 6..8
+    rule 6: [0: CH -> 7]
+    rule 7: [0: EE -> 4294967295]
+  grammar 5: rules 8..9
+    rule 8: [0: EE -> 4294967295]
+  grammar 6: rules 9..11
+    rule 9: [0: CH -> 10]
+    rule 10: [0: EE -> 4294967295]
+  grammar 7: rules 11..12
+    rule 11: [0: EE -> 4294967295]
+  grammar 8: rules 12..14
+    rule 12: [0: CH -> 13]
+    rule 13: [0: EE -> 4294967295]
+  grammar 9: rules 14..15
+    rule 14: [0: EE -> 4294967295]
+  grammar 10: rules 15..17
+    rule 15: [0: CH -> 16]
+    rule 16: [0: EE -> 4294967295]
+  grammar 11: rules 17..18
+    rule 17: [0: EE -> 4294967295]
+  grammar 12: rules 18..20
+    rule 18: [0: CH -> 19]
+    rule 19: [0: EE -> 4294967295]
+  grammar 13: rules 20..21
+    rule 20: [0: EE -> 4294967295]
+  grammar 14: rules 21..23
+    rule 21: [0: CH -> 22]
+    rule 22: [0: EE -> 4294967295]
+  grammar 15: rules 23..24
+    rule 23: [0: EE -> 4294967295]
+  grammar 16: rules 24..26
+    rule 24: [0: CH -> 25]
+    rule 25: [0: EE -> 4294967295]
+  grammar 17: rules 26..27
+    rule 26: [0: EE -> 4294967295]
+  grammar 18: rules 27..29
+    rule 27: [0: CH -> 28]
+    rule 28: [0: EE -> 4294967295]
+  grammar 19: rules 29..30
+    rule 29: [0: EE -> 4294967295]
+  grammar 20: rules 30..32
+    rule 30: [0: CH -> 31]
+    rule 31: [0: EE -> 4294967295]
+  grammar 21: rules 32..33
+    rule 32: [0: EE -> 4294967295]
+  grammar 22: rules 33..35
+    rule 33: [0: CH -> 34]
+    rule 34: [0: EE -> 4294967295]
+  grammar 23: rules 35..36
+    rule 35: [0: EE -> 4294967295]
+  grammar 24: rules 36..40
+    rule 36: [0: AT(*) -> 36, 1: SE(*) -> 37, 2: EE -> 4294967295, 3: CH[untyped] -> 38]
+    rule 37: [0: SE(*) -> 37, 1: EE -> 4294967295, 2: CH[untyped] -> 39]
+    rule 38: [0: SE(*) -> 37, 1: EE -> 4294967295, 2: CH[untyped] -> 38]
+    rule 39: [0: SE(*) -> 37, 1: EE -> 4294967295, 2: CH[untyped] -> 39]
+  grammar 25: rules 40..41
+    rule 40: [0: AT(*) -> 40, 1: EE -> 4294967295]
+  grammar 26: rules 41..43
+    rule 41: [0: CH -> 42]
+    rule 42: [0: EE -> 4294967295]
+  grammar 27: rules 43..44
+    rule 43: [0: EE -> 4294967295]
+  grammar 28: rules 44..46
+    rule 44: [0: CH -> 45]
+    rule 45: [0: EE -> 4294967295]
+  grammar 29: rules 46..47
+    rule 46: [0: EE -> 4294967295]
+  grammar 30: rules 47..49
+    rule 47: [0: CH -> 48]
+    rule 48: [0: EE -> 4294967295]
+  grammar 31: rules 49..50
+    rule 49: [0: EE -> 4294967295]
+  grammar 32: rules 50..52
+    rule 50: [0: CH -> 51]
+    rule 51: [0: EE -> 4294967295]
+  grammar 33: rules 52..53
+    rule 52: [0: EE -> 4294967295]
+  grammar 34: rules 53..55
+    rule 53: [0: CH -> 54]
+    rule 54: [0: EE -> 4294967295]
+  grammar 35: rules 55..56
+    rule 55: [0: EE -> 4294967295]
+  grammar 36: rules 56..58
+    rule 56: [0: CH -> 57]
+    rule 57: [0: EE -> 4294967295]
+  grammar 37: rules 58..59
+    rule 58: [0: EE -> 4294967295]
+  grammar 38: rules 59..61
+    rule 59: [0: CH -> 60]
+    rule 60: [0: EE -> 4294967295]
+  grammar 39: rules 61..62
+    rule 61: [0: EE -> 4294967295]
+  grammar 40: rules 62..64
+    rule 62: [0: CH -> 63]
+    rule 63: [0: EE -> 4294967295]
+  grammar 41: rules 64..65
+    rule 64: [0: EE -> 4294967295]
+  grammar 42: rules 65..67
+    rule 65: [0: CH -> 66]
+    rule 66: [0: EE -> 4294967295]
+  grammar 43: rules 67..68
+    rule 67: [0: EE -> 4294967295]
+  grammar 44: rules 68..70
+    rule 68: [0: CH -> 69]
+    rule 69: [0: EE -> 4294967295]
+  grammar 45: rules 70..71
+    rule 70: [0: EE -> 4294967295]
+  grammar 46: rules 71..73
+    rule 71: [0: CH -> 72]
+    rule 72: [0: EE -> 4294967295]
+  grammar 47: rules 73..74
+    rule 73: [0: EE -> 4294967295]
+  grammar 48: rules 74..76
+    rule 74: [0: CH -> 75]
+    rule 75: [0: EE -> 4294967295]
+  grammar 49: rules 76..77
+    rule 76: [0: EE -> 4294967295]
+  grammar 50: rules 77..79
+    rule 77: [0: CH -> 78]
+    rule 78: [0: EE -> 4294967295]
+  grammar 51: rules 79..80
+    rule 79: [0: EE -> 4294967295]
+  grammar 52: rules 80..82
+    rule 80: [0: CH -> 81]
+    rule 81: [0: EE -> 4294967295]
+  grammar 53: rules 82..83
+    rule 82: [0: EE -> 4294967295]
+  grammar 54: rules 83..85
+    rule 83: [0: CH -> 84]
+    rule 84: [0: EE -> 4294967295]
+  grammar 55: rules 85..86
+    rule 85: [0: EE -> 4294967295]
+  grammar 56: rules 86..88
+    rule 86: [0: CH -> 87]
+    rule 87: [0: EE -> 4294967295]
+  grammar 57: rules 88..89
+    rule 88: [0: EE -> 4294967295]
+  grammar 58: rules 89..91
+    rule 89: [0: CH -> 90]
+    rule 90: [0: EE -> 4294967295]
+  grammar 59: rules 91..92
+    rule 91: [0: EE -> 4294967295]
+  grammar 60: rules 92..94
+    rule 92: [0: CH -> 93]
+    rule 93: [0: EE -> 4294967295]
+  grammar 61: rules 94..95
+    rule 94: [0: EE -> 4294967295]
+  grammar 62: rules 95..97
+    rule 95: [0: CH -> 96]
+    rule 96: [0: EE -> 4294967295]
+  grammar 63: rules 97..98
+    rule 97: [0: EE -> 4294967295]
+  grammar 64: rules 98..100
+    rule 98: [0: CH -> 99]
+    rule 99: [0: EE -> 4294967295]
+  grammar 65: rules 100..101
+    rule 100: [0: EE -> 4294967295]
+  grammar 66: rules 101..103
+    rule 101: [0: CH -> 102]
+    rule 102: [0: EE -> 4294967295]
+  grammar 67: rules 103..104
+    rule 103: [0: EE -> 4294967295]
+  grammar 68: rules 104..106
+    rule 104: [0: CH -> 105]
+    rule 105: [0: EE -> 4294967295]
+  grammar 69: rules 106..107
+    rule 106: [0: EE -> 4294967295]
+  grammar 70: rules 107..109
+    rule 107: [0: CH -> 108]
+    rule 108: [0: EE -> 4294967295]
+  grammar 71: rules 109..110
+    rule 109: [0: EE -> 4294967295]
+  grammar 72: rules 110..112
+    rule 110: [0: CH -> 111]
+    rule 111: [0: EE -> 4294967295]
+  grammar 73: rules 112..113
+    rule 112: [0: EE -> 4294967295]
+  grammar 74: rules 113..115
+    rule 113: [0: CH -> 114]
+    rule 114: [0: EE -> 4294967295]
+  grammar 75: rules 115..116
+    rule 115: [0: EE -> 4294967295]
+  grammar 76: rules 116..118
+    rule 116: [0: CH -> 117]
+    rule 117: [0: EE -> 4294967295]
+  grammar 77: rules 118..119
+    rule 118: [0: EE -> 4294967295]
+  grammar 78: rules 119..121
+    rule 119: [0: CH -> 120]
+    rule 120: [0: EE -> 4294967295]
+  grammar 79: rules 121..122
+    rule 121: [0: EE -> 4294967295]
+  grammar 80: rules 122..124
+    rule 122: [0: CH -> 123]
+    rule 123: [0: EE -> 4294967295]
+  grammar 81: rules 124..125
+    rule 124: [0: EE -> 4294967295]
+  grammar 82: rules 125..127
+    rule 125: [0: CH -> 126]
+    rule 126: [0: EE -> 4294967295]
+  grammar 83: rules 127..128
+    rule 127: [0: EE -> 4294967295]
+  grammar 84: rules 128..130
+    rule 128: [0: CH -> 129]
+    rule 129: [0: EE -> 4294967295]
+  grammar 85: rules 130..131
+    rule 130: [0: EE -> 4294967295]
+  grammar 86: rules 131..133
+    rule 131: [0: CH -> 132]
+    rule 132: [0: EE -> 4294967295]
+  grammar 87: rules 133..134
+    rule 133: [0: EE -> 4294967295]
+  grammar 88: rules 134..136
+    rule 134: [0: CH -> 135]
+    rule 135: [0: EE -> 4294967295]
+  grammar 89: rules 136..137
+    rule 136: [0: EE -> 4294967295]
+  grammar 90: rules 137..139
+    rule 137: [0: CH -> 138]
+    rule 138: [0: EE -> 4294967295]
+  grammar 91: rules 139..140
+    rule 139: [0: EE -> 4294967295]
+  grammar 92: rules 140..145
+    rule 140: [0: AT(batchId) -> 141]
+    rule 141: [0: SE({urn:rexi:interop:poly}Entry) -> 142]
+    rule 142: [0: SE({urn:rexi:interop:poly}Entry) -> 143, 1: SE({urn:rexi:interop:poly}Summary) -> 144, 2: EE -> 4294967295]
+    rule 143: [0: SE({urn:rexi:interop:poly}Entry) -> 143, 1: SE({urn:rexi:interop:poly}Summary) -> 144, 2: EE -> 4294967295]
+    rule 144: [0: EE -> 4294967295]
+  grammar 93: rules 145..147
+    rule 145: [0: AT(batchId) -> 146]
+    rule 146: [0: EE -> 4294967295]
+  grammar 94: rules 147..152
+    rule 147: [0: AT(source) -> 148]
+    rule 148: [0: SE({urn:rexi:interop:poly}TempReading) -> 149, 1: SE({urn:rexi:interop:poly}StatusMessage) -> 150, 2: SE({urn:rexi:interop:poly}Alert) -> 151]
+    rule 149: [0: EE -> 4294967295]
+    rule 150: [0: EE -> 4294967295]
+    rule 151: [0: EE -> 4294967295]
+  grammar 95: rules 152..154
+    rule 152: [0: AT(source) -> 153]
+    rule 153: [0: EE -> 4294967295]
+  grammar 96: rules 154..157
+    rule 154: [0: SE({urn:rexi:interop:poly}Value) -> 155]
+    rule 155: [0: SE({urn:rexi:interop:poly}Unit) -> 156]
+    rule 156: [0: EE -> 4294967295]
+  grammar 97: rules 157..158
+    rule 157: [0: EE -> 4294967295]
+  grammar 98: rules 158..161
+    rule 158: [0: AT(lang) -> 159, 1: CH -> 160]
+    rule 159: [0: CH -> 160]
+    rule 160: [0: EE -> 4294967295]
+  grammar 99: rules 161..163
+    rule 161: [0: AT(lang) -> 162, 1: EE -> 4294967295]
+    rule 162: [0: EE -> 4294967295]
+  grammar 100: rules 163..168
+    rule 163: [0: AT(ticket) -> 164, 1: SE({urn:rexi:interop:poly}Code) -> 165]
+    rule 164: [0: SE({urn:rexi:interop:poly}Code) -> 165]
+    rule 165: [0: SE({urn:rexi:interop:poly}Severity) -> 166]
+    rule 166: [0: SE({urn:rexi:interop:poly}Acknowledged) -> 167, 1: EE -> 4294967295]
+    rule 167: [0: EE -> 4294967295]
+  grammar 101: rules 168..170
+    rule 168: [0: AT(ticket) -> 169, 1: EE -> 4294967295]
+    rule 169: [0: EE -> 4294967295]
+enumerations:

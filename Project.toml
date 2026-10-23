@@ -1,0 +1,13 @@
+name = "JExi"
+uuid = "6c138e09-6d40-4d74-9105-bc5e8df82c36"
+version = "0.1.0"
+authors = ["Nathan Henehan <nhenehan@acm.org>"]
+
+[deps]
+PrecompileTools = "aea7be01-6a6a-4083-8856-8a6e6704d82a"
+XML = "72c71f33-b9b6-44de-8c94-c961784809e2"
+
+[compat]
+PrecompileTools = "1"
+XML = "0.4"
+julia = "1.10"
