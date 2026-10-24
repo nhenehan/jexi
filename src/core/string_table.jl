@@ -422,8 +422,9 @@ end
 # ------------------------------------------------------------------ value (7.3.3)
 
 """Writes a value string in the partition of `context` (the element or attribute name)."""
-write_value!(st::StringTable, w::BitWriter, context::QNameId, value::AbstractString) =
-    write_value!(st.values, w, context, value)
+write_value!(st::StringTable, w::BitWriter, context::QNameId, value::AbstractString,
+    alphabet::Union{Nothing,String} = nothing) = write_value!(st.values, w, context, value, alphabet)
 
 """Reads a value string of `context`. A hit returns the stored `String` itself."""
-read_value!(st::StringTable, r::BitReader, context::QNameId) = read_value!(st.values, r, context)
+read_value!(st::StringTable, r::BitReader, context::QNameId, alphabet::Union{Nothing,String} = nothing) =
+    read_value!(st.values, r, context, alphabet)

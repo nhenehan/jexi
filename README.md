@@ -87,21 +87,28 @@ JExi needs Julia 1.10 or newer. It has no exports, so every name is written
 - **Wildcards** (`xs:any`, `xs:anyAttribute`). The stream must then carry the
   name of the element or attribute, and that path is not built yet. Documents
   that don't use the wildcard work.
-- **Restricted character sets.** These values are written as short indexes
-  into a small alphabet; a plain string would give bytes other readers misread,
-  so they are refused (more below).
+- **Unreadable patterns on restricted strings.** When an `xs:pattern` cannot
+  be parsed, the alphabet of its restricted character set is unknown, and its
+  values are refused (more below).
 - **Fragments.** JExi encodes whole documents with one root element.
 - **selfContained.** The EXI spec does not allow it together with strict.
 - **datatypeRepresentationMap.** It swaps in other encodings for datatypes; it
   is rarely used, and every reader would need the same map.
 
-The schema still compiles when it uses a wildcard or a restricted character
-set. The refusal happens only when a document uses that part, so a large schema
-with one such spot still works. A restricted character set
-([EXI 7.1.10.1](https://www.w3.org/TR/exi/#restrictedCharSet)) comes from a
-string type whose `xs:pattern` allows fewer than 256 characters, all in the
-BMP, such as `[A-Z]{2}[0-9]{4}`. Patterns with a large alphabet (`\d+`,
-`\p{L}+`, `.*`, `[^x]`, anything outside the BMP) are not restricted and work.
+The schema still compiles when it uses a wildcard or an unreadable pattern.
+The refusal happens only when a document uses that part, so a large schema
+with one such spot still works.
+
+Restricted character sets ([EXI 7.1.10.1](https://www.w3.org/TR/exi/#restrictedCharSet))
+are supported. One comes from a string type whose `xs:pattern` allows fewer
+than 256 characters, all in the BMP, such as `[A-Z]{2}[0-9]{4}`; each
+character is then written as an n-bit index into that alphabet, in code point
+order, and a character outside it as an escape and its code point. The bytes
+equal EXIficient 1.0.7's, bit-packed and byte-aligned, except for a character
+outside the BMP: EXIficient counts it as two UTF-16 units and writes its low
+surrogate as a second character, where the spec counts one character. Patterns
+with a large alphabet (`\d+`, `\p{L}+`, `.*`, `[^x]`, anything outside the
+BMP) are not restricted and stay plain strings.
 
 ## Safe with untrusted data
 
@@ -150,8 +157,8 @@ oracle's event stream, re-encode from decoded events, and are accepted by
 exipd. The schema compiler makes the same tables as rexi's for every fixture
 schema, and its EXIficient-format grammar dump equals the oracle's. In the
 rexi-interop matrix JExi matches rexi in every strict cell. Wildcards are refused
-with `UnsupportedError(FEATURE_WILDCARD)`, restricted character sets with
-`UnsupportedError(FEATURE_RESTRICTED_CHARACTER_SET)`.
+with `UnsupportedError(FEATURE_WILDCARD)`, restricted strings whose pattern
+does not parse with `UnsupportedError(FEATURE_RESTRICTED_CHARACTER_SET)`.
 
 **Layout.** One package with the layers of rexi's crates:
 

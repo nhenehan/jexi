@@ -5,15 +5,19 @@
 
 """
 Maps simple types to datatype kinds (https://www.w3.org/TR/exi/#builtInEXITypes)
-and collects the enumeration value sets.
+and collects the enumeration value sets and the restricted-character-set
+alphabets. A restricted kind's `set` numbers its alphabet in `charsets` until
+the tables are built, when it becomes the alphabet's `StrIdx`.
 """
 mutable struct DatatypeMapper
     model::Model
     cache::Dict{Int,Union{Nothing,DatatypeKind}}
     enum_sets::Vector{Vector{String}}
+    charsets::Vector{String}
 end
 
-DatatypeMapper(m::Model) = DatatypeMapper(m, Dict{Int,Union{Nothing,DatatypeKind}}(), Vector{String}[])
+DatatypeMapper(m::Model) =
+    DatatypeMapper(m, Dict{Int,Union{Nothing,DatatypeKind}}(), Vector{String}[], String[])
 
 function kind_of!(dm::DatatypeMapper, t::Int)
     haskey(dm.cache, t) && return dm.cache[t]
@@ -30,7 +34,7 @@ function compute_kind!(dm::DatatypeMapper, t::Int)
     v isa ListOf && return list_kind(v.item)
     v isa UnionOf && return string_kind(WS_COLLAPSE)
     en = effective_enumeration(dm.model, t)
-    en === nothing && return atomic_kind(dm.model, t)
+    en === nothing && return atomic_kind(dm, t)
     return enumeration_kind!(dm, en[1], en[2])
 end
 
@@ -74,27 +78,29 @@ function parse_int_facet(v::AbstractString)
 end
 
 """
-Whether a string type has a restricted character set
-(https://www.w3.org/TR/exi/#restrictedCharSet). Only types derived from the
+The restricted character set of a string type
+(https://www.w3.org/TR/exi/#restrictedCharSet), as its alphabet: a string of
+its characters in code point order, `nothing` when the type has none, or
+`CharsetUnreadable()`. Only types derived from the
 built-in `xs:string` count, not every type that is sent as a string (anyURI,
 QName, duration and so on are not). The set comes from the patterns written on
 the most-derived type in the chain that has any; built-in types never have one.
 `below` is the chain from `t` up to, not including, its nearest built-in.
-A pattern that cannot be read counts as restricted, so its values are refused
-instead of guessed.
+A pattern that cannot be read counts as restricted with no alphabet, so its
+values are refused instead of guessed.
 """
-function has_restricted_charset(m::Model, t::Int, below::Vector{Int})
-    STRING_TYPE in ancestors(m, t) || return false
+function type_alphabet(m::Model, t::Int, below::Vector{Int})
+    STRING_TYPE in ancestors(m, t) || return nothing
     for a in below
         s = as_simple(mtype(m, a))
         (s === nothing || isempty(s.facets.patterns)) && continue
-        r = restricted_charset(s.facets.patterns)
-        return r isa CharsetRestricted || r isa CharsetUnreadable
+        return restricted_alphabet(s.facets.patterns)
     end
-    return false
+    return nothing
 end
 
-function atomic_kind(m::Model, t::Int)
+function atomic_kind(dm::DatatypeMapper, t::Int)
+    m = dm.model
     b = something(closest_builtin(m, t), ANY_SIMPLE_TYPE)
     # Types below the built-in, nearest first.
     below = Int[]
@@ -116,7 +122,14 @@ function atomic_kind(m::Model, t::Int)
                 break
             end
         end
-        has_restricted_charset(m, t, below) && return restricted_string_kind(ws)
+        a = type_alphabet(m, t, below)
+        # An unreadable pattern still makes the kind restricted, with no
+        # alphabet: its values are refused.
+        a isa CharsetUnreadable && return restricted_string_kind(ws)
+        if a !== nothing
+            push!(dm.charsets, a)
+            return restricted_string_kind(ws, length(dm.charsets) - 1)
+        end
         return string_kind(ws)
     end
     if c isa CatBoolean
@@ -338,6 +351,13 @@ function emit(m::Model; max_grammar_size::Union{Nothing,Int} = SchemaLoadOptions
         k = kind_of!(dm, t)
         push!(g.types, TypeDecl(q, grammar, empty_grammar, something(k, UNTYPED_KIND), k !== nothing,
             has_named_subtype[i] || is_union))
+    end
+    # Each alphabet goes into the string pool, and its kind points at it.
+    for (i, td) in enumerate(g.types)
+        k = td.datatype
+        (k.tag == K_RESTRICTED_STRING && k.set != NONE) || continue
+        k = restricted_string_kind(k.whitespace, intern!(b, dm.charsets[Int(k.set) + 1]))
+        g.types[i] = TypeDecl(td.qname, td.grammar, td.empty_grammar, k, td.has_datatype, td.typecastable)
     end
     for set in dm.enum_sets
         start = length(g.enum_values)

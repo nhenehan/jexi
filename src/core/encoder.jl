@@ -390,8 +390,14 @@ Writes a value of `kind`. Strings go through the value string table with
 Plain text given for a typed kind is parsed like XML text.
 """
 function write_typed_value!(enc::Encoder, kind::DatatypeKind, value, context::QNameId)
-    # Refused before the string table is touched: see `K_RESTRICTED_STRING`.
-    kind.tag == K_RESTRICTED_STRING && throw(UnsupportedError(FEATURE_RESTRICTED_CHARACTER_SET))
+    if kind.tag == K_RESTRICTED_STRING
+        # No alphabet (a pattern that did not parse): refused before the string
+        # table is touched. See `K_RESTRICTED_STRING`.
+        has_alphabet(kind) || throw(UnsupportedError(FEATURE_RESTRICTED_CHARACTER_SET))
+        s = value isa Lexical ? apply_whitespace(kind.whitespace, value.text) :
+            value isa AbstractString ? value : throw(mismatch(kind, value))
+        return write_value!(enc.strings, enc.out, context, s, gstring(enc.tables, kind.set))
+    end
     if is_string_like(kind)
         ws = kind.tag == K_STRING ? kind.whitespace : WS_PRESERVE
         s = value isa Lexical ? apply_whitespace(ws, value.text) :

@@ -273,30 +273,98 @@ end
         # The same schema without the pattern.
         plain(base) = restricted(base, nothing)
         refused = J.UnsupportedError(J.FEATURE_RESTRICTED_CHARACTER_SET)
-        for p in ("[abc&#x3095;&#x00A9;]", "[0-9]{3}-[0-9]{2}-[0-9]{4}", "[A-X]", "[&#x03D7;-&#x03DA;]",
-                  "[a-z]{3}", "[a-z-[aeiou]]", "[a-")
-            g = J.compile_string(restricted("xs:string", p))
+        @test J.restricted_alphabet(["[c-a]"]) == J.CharsetUnreadable()
+        @test J.restricted_alphabet(["[ca]", "b"]) == "abc"
+        @test J.restricted_alphabet(["[abcゕ©]"]) == "abc©ゕ"
+        @test J.restricted_alphabet([raw"\d"]) === nothing
+        @test J.restricted_alphabet([""]) == ""
+
+        # EXIficient 1.0.7's bytes (strict, bit-packed and byte-aligned) for
+        # each case, and the same document back from them.
+        bp, ba = J.strict_options(), J.strict_options(alignment = J.ALIGN_BYTE_ALIGNED)
+        r_type(p) = """<xs:simpleType name="R"><xs:restriction base="xs:string"><xs:pattern value="$p"/>
+            </xs:restriction></xs:simpleType>"""
+        r_elem = """<xs:element name="r" type="R"/>"""
+        for (schema, xml, decoded, hex_bp, hex_ba) in (
+                # The VIN of ISO 3779.
+                (r_type("[A-HJ-NPR-Z0-9]{17}") * r_elem, "<r>1HGCM82633A004352</r>", nothing,
+                 "8009828a062a404306194000206284", "8000130111100c1508020603030a000004030502"),
+                # Characters outside the alphabet: the escape index, then the code point.
+                (r_type("[A-HJ-NPR-Z0-9]{17}") * r_elem, "<r>IOQ-é€</r>", nothing,
+                 "800442930a7c2a3096c3d2030d6208", "8000082149214f2151212d21e90121ac41"),
+                # Indexes are in code point order, not pattern order.
+                (r_type("[abc&#x3095;&#x00A9;]+") * r_elem, "<r>a©ゕcb</r>", nothing,
+                 "80038711", "8000070003040201"),
+                # An empty alphabet: zero-bit indexes, every character escaped.
+                (r_type("") * r_elem, "<r>xy</r>", nothing, "80023c3c80", "8000047879"),
+                # String-table hits, local and global, in an element and an attribute.
+                ("""$(r_type("[0-9]{3}-[0-9]{2}-[0-9]{4}"))<xs:element name="r"><xs:complexType><xs:sequence>
+                    <xs:element name="a" type="R" maxOccurs="unbounded"/></xs:sequence>
+                    <xs:attribute name="b" type="R"/></xs:complexType></xs:element>""",
+                 """<r b="123-45-6789"><a>123-45-6789</a><a>123-45-6789</a><a>987-65-4321</a></r>""", nothing,
+                 "800348d01581e26804020da98076054328",
+                 "8000000d020304000506000708090a010001000d0a0908000706000504030201"),
+                # The item type of a list.
+                (r_type("[A-X]+") * """<xs:simpleType name="L"><xs:list itemType="R"/></xs:simpleType>
+                    <xs:element name="r" type="L"/>""", "<r>AB CD AB Z</r>", nothing,
+                 "80020200208218000f0b40", "800004040001040203000003185a"),
+                # xs:token collapses before the characters are written.
+                ("""<xs:simpleType name="R"><xs:restriction base="xs:token"><xs:pattern value="[a-c ]+"/>
+                    </xs:restriction></xs:simpleType>""" * r_elem, "<r>  a  b   c </r>", "<r>a b c</r>",
+                 "80039083", "8000070100020003"),
+                # Two types, two alphabets.
+                (r_type("[a-c]+") * """<xs:simpleType name="S"><xs:restriction base="xs:string">
+                    <xs:pattern value="[x-z]+"/></xs:restriction></xs:simpleType><xs:element name="r">
+                    <xs:complexType><xs:sequence><xs:element name="p" type="R"/><xs:element name="q" type="S"/>
+                    </xs:sequence></xs:complexType></xs:element>""", "<r><p>abc</p><q>zyx</q></r>", nothing,
+                 "80028c0b20", "80000500010205020100"),
+                # 95 characters: 7-bit indexes.
+                (r_type("[ -~]*") * r_elem, "<r>Hello, World! ~</r>", nothing,
+                 "8008a88b3264f1801bcfa53220101780", "80001128454c4c4f0c00374f524c4401005e"))
+            g = J.compile_string(xs(schema))
             @test occursin("RestrictedString", J.grammar_listing(g))
-            @test_throws refused J.encode_xml("<r>abc</r>", g)
-            # The same bytes a plain xs:string gives: the decoder refuses them too.
-            bytes = J.encode_xml("<r>abc</r>", J.compile_string(plain("xs:string")))
-            @test_throws refused J.decode_to_xml(bytes, g; options = J.strict_options())
+            for (o, hex) in ((bp, hex_bp), (ba, hex_ba))
+                @test bytes2hex(J.encode_xml(xml, g; options = o)) == hex
+                @test J.decode_to_xml(hex2bytes(hex), g; options = o) == something(decoded, xml)
+            end
         end
+        # A character outside the BMP is one escaped code point. EXIficient
+        # 1.0.7 counts UTF-16 units instead (AbstractTypeEncoder.writeRCSValue
+        # loops over String.length() and writes the low surrogate as a second
+        # escaped character), so its bytes are not the reference here.
+        g = J.compile_string(xs(r_type("[A-Z]+") * r_elem))
+        bytes = J.encode_xml("<r>A😀B</r>", g)
+        @test J.decode_to_xml(bytes, g; options = bp) == "<r>A😀B</r>"
+        # The literal is 3 characters ("A", escape + U+1F600, "B"), not 4.
+        @test bytes == J.encode_xml("<r>A\U0001F600B</r>", g)
+        @test length(bytes) == length(J.encode_xml("<r>A\u0100B</r>", g)) + 1
+        # A bad index past the escape is an error, not a character.
+        g = J.compile_string(xs(r_type("[a-e]") * r_elem))
+        @test_throws J.ValueError J.decode_to_xml(hex2bytes("8003" * "ff"), g; options = bp)
+
         # Derived twice: the patterns of the most-derived type that has any count.
         g = J.compile_string(xs("""<xs:simpleType name="A"><xs:restriction base="xs:string"><xs:pattern value=".*"/>
             </xs:restriction></xs:simpleType><xs:simpleType name="B"><xs:restriction base="A">
             <xs:pattern value="[a-c]+"/></xs:restriction></xs:simpleType>
             <xs:simpleType name="C"><xs:restriction base="B"><xs:maxLength value="3"/></xs:restriction></xs:simpleType>
             <xs:element name="r" type="C"/>"""))
+        @test occursin("RestrictedString", J.grammar_listing(g))
+        @test J.decode_to_xml(J.encode_xml("<r>abc</r>", g), g; options = bp) == "<r>abc</r>"
+        @test J.encode_xml("<r>abc</r>", g) != J.encode_xml("<r>abc</r>", J.compile_string(plain("xs:string")))
+
+        # A pattern that does not parse: no alphabet, so values are refused.
+        g = J.compile_string(restricted("xs:string", "[a-"))
+        @test occursin("RestrictedString", J.grammar_listing(g))
         @test_throws refused J.encode_xml("<r>abc</r>", g)
-        # The item type of a list.
-        g = J.compile_string(xs("""<xs:simpleType name="R"><xs:restriction base="xs:string"><xs:pattern value="[A-X]+"/>
-            </xs:restriction></xs:simpleType><xs:simpleType name="L"><xs:list itemType="R"/></xs:simpleType>
-            <xs:element name="r" type="L"/>"""))
-        @test_throws refused J.encode_xml("<r>AB CD</r>", g)
-        gl = J.compile_string(xs("""<xs:simpleType name="L"><xs:list itemType="xs:string"/></xs:simpleType>
-            <xs:element name="r" type="L"/>"""))
-        @test_throws refused J.decode_to_xml(J.encode_xml("<r>AB CD</r>", gl), g; options = J.strict_options())
+        bytes = J.encode_xml("<r>abc</r>", J.compile_string(plain("xs:string")))
+        @test_throws refused J.decode_to_xml(bytes, g; options = bp)
+        # ... but a document that does not use the type works.
+        g = J.compile_string(xs("""<xs:simpleType name="R"><xs:restriction base="xs:string"><xs:pattern value="[a-"/>
+            </xs:restriction></xs:simpleType><xs:element name="r"><xs:complexType><xs:sequence>
+            <xs:element name="a" type="R" minOccurs="0"/><xs:element name="b" type="xs:string"/>
+            </xs:sequence></xs:complexType></xs:element>"""))
+        @test occursin("<b>x</b>", J.decode_to_xml(J.encode_xml("<r><b>x</b></r>", g), g; options = bp))
+        @test_throws refused J.encode_xml("<r><a>ab</a><b>x</b></r>", g)
 
         # Large alphabets, and types other than xs:string: the same bytes as before.
         for (base, p, text) in (("xs:string", raw"\p{Lm}", "abc"), ("xs:string", raw"\d+", "123"),
@@ -317,19 +385,14 @@ end
         @test !occursin("RestrictedString", J.grammar_listing(g))
         @test J.encode_xml("<r>ab</r>", g) isa Vector{UInt8}
 
-        # Only values are refused: a document that does not use the type works.
-        g = J.compile_string(xs("""<xs:simpleType name="R"><xs:restriction base="xs:string"><xs:pattern value="[A-Z]{2}[0-9]{4}"/>
-            </xs:restriction></xs:simpleType><xs:element name="r"><xs:complexType><xs:sequence>
-            <xs:element name="a" type="R" minOccurs="0"/><xs:element name="b" type="xs:string"/>
-            </xs:sequence></xs:complexType></xs:element>"""))
-        bytes = J.encode_xml("<r><b>x</b></r>", g)
-        @test occursin("<b>x</b>", J.decode_to_xml(bytes, g; options = J.strict_options()))
-        @test_throws refused J.encode_xml("<r><a>AB1234</a><b>x</b></r>", g)
         @test sprint(showerror, refused) == "not supported: restricted character sets"
         # SchemaGen writes the kind out and reads it back the same.
         k = J.restricted_string_kind(J.WS_COLLAPSE)
         @test J.SchemaGen.kind(k) == "J.restricted_string_kind(J.WS_COLLAPSE)"
         @test Core.eval(@__MODULE__, Meta.parse(J.SchemaGen.kind(k))) == k
+        k7 = J.restricted_string_kind(J.WS_PRESERVE, 7)
+        @test J.SchemaGen.kind(k7) == "J.restricted_string_kind(J.WS_PRESERVE, 7)"
+        @test Core.eval(@__MODULE__, Meta.parse(J.SchemaGen.kind(k7))) == k7
         @test J.kind_name(k) == "String" && sprint(show, k) == "RestrictedString(WS_COLLAPSE)"
         @test J.parse_lexical(k, " a  b ", nothing) == "a b"
         @test_throws J.InternalError J.read_scalar!(J.BitReader(UInt8[0]), k, nothing)

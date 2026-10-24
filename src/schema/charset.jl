@@ -7,10 +7,11 @@
 # get the alphabet from an XSD regular expression
 # (https://www.w3.org/TR/exi/#regexToCharset).
 #
-# JExi does not write that form yet. This file only answers the question "is
-# this type's set restricted?", so values of such a type can be refused instead
-# of being written as a plain string (which other readers would turn into
-# garbage with no error).
+# This file answers "is this type's set restricted?" and, when it is, gives the
+# alphabet, which the codec writes characters against. A pattern it cannot
+# read gives no alphabet, and values of that type are refused rather than
+# written as a plain string (which other readers would turn into garbage with
+# no error).
 #
 # The parser below follows the XSD regex grammar
 # (https://www.w3.org/TR/xmlschema-2/#regexs) but only collects characters.
@@ -294,8 +295,25 @@ if the patterns we can read already make the set too big, the joined set is
 too big whatever the unreadable one holds, so the answer is "not restricted".
 """
 function restricted_charset(patterns::AbstractVector{<:AbstractString})
-    isempty(patterns) && return CharsetNotRestricted()
+    return first(charset_of(patterns))
+end
+
+"""
+    restricted_alphabet(patterns) -> Union{String,Nothing,CharsetUnreadable}
+
+The alphabet of a restricted set, as a string of its characters in code point
+order (the order EXI numbers them in), `nothing` when the set is not
+restricted, or `CharsetUnreadable()`.
+"""
+function restricted_alphabet(patterns::AbstractVector{<:AbstractString})
+    r, set = charset_of(patterns)
+    r isa CharsetRestricted || return r isa CharsetUnreadable ? r : nothing
+    return String([Char(c) for rg in set for c in rg])
+end
+
+function charset_of(patterns::AbstractVector{<:AbstractString})
     set = CharRanges()
+    isempty(patterns) && return (CharsetNotRestricted(), set)
     open = false
     unreadable = false
     for pat in patterns
@@ -308,10 +326,10 @@ function restricted_charset(patterns::AbstractVector{<:AbstractString})
             set = union_ranges(set, r)
         end
     end
-    open && return CharsetNotRestricted()
+    open && return (CharsetNotRestricted(), set)
     n = count_chars(set)
-    n < 256 || return CharsetNotRestricted()
-    (isempty(set) || last(set[end]) <= 0xffff) || return CharsetNotRestricted()
-    unreadable && return CharsetUnreadable()
-    return CharsetRestricted(n)
+    n < 256 || return (CharsetNotRestricted(), set)
+    (isempty(set) || last(set[end]) <= 0xffff) || return (CharsetNotRestricted(), set)
+    unreadable && return (CharsetUnreadable(), set)
+    return (CharsetRestricted(n), set)
 end

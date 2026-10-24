@@ -1,5 +1,25 @@
 # Changelog
 
+## Unreleased
+
+- Restricted character sets
+  ([EXI 7.1.10.1](https://www.w3.org/TR/exi/#restrictedCharSet)) are encoded
+  and decoded instead of refused. The alphabet a string type's patterns allow
+  is kept in the grammar tables (the kind's `set` is its `StrIdx`), and each
+  character of a string-table miss is written as an n-bit index into it, or
+  as the escape index and the code point. The bytes equal EXIficient 1.0.7's,
+  bit-packed and byte-aligned, on new test vectors (an ISO 3779 VIN pattern,
+  escaped characters, non-ASCII alphabets, the empty alphabet, string-table
+  hits, list items, `xs:token`, and two alphabets in one document). A
+  character outside the BMP is one escaped code point, as the spec says;
+  EXIficient writes it as two (see the README).
+- A restricted string whose pattern does not parse still has no alphabet, and
+  its values are still refused with
+  `UnsupportedError(FEATURE_RESTRICTED_CHARACTER_SET)`.
+- `restricted_string_kind(ws, alphabet)` takes the alphabet's `StrIdx`, and
+  `SchemaGen` writes it. Tables generated before this change hold restricted
+  kinds with no alphabet, which behave as before (refused); regenerate them.
+
 ## 0.1.0
 
 First release. JExi encodes and decodes schema-informed, strict EXI 1.0 in

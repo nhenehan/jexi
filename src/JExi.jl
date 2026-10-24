@@ -12,13 +12,13 @@ with no `\$EXI` cookie, and with the options usually agreed outside the stream.
 Anything else is either supported or refused with an `UnsupportedError`.
 Nothing is quietly encoded in some "close enough" way.
 
-One such refusal is restricted character sets
-([EXI 7.1.10.1](https://www.w3.org/TR/exi/#restrictedCharSet)). When a string
-type's `xs:pattern` allows only a small alphabet, EXI writes each character as
-a short index into it, so a plain string would give bytes that other readers
-decode to garbage, with no error. Values of such types (kind
-`K_RESTRICTED_STRING`) are refused when they are written or read; the schema
-still compiles, and documents that do not use the type work.
+Restricted character sets
+([EXI 7.1.10.1](https://www.w3.org/TR/exi/#restrictedCharSet)) are written as
+EXI says: when a string type's `xs:pattern` allows only a small alphabet, each
+character is a short index into it. A pattern JExi cannot parse leaves the
+alphabet unknown, so values of that type (kind `K_RESTRICTED_STRING` with no
+alphabet) are refused rather than guessed; the schema still compiles, and
+documents that do not use the type work.
 
 The decoder is safe to point at untrusted bytes: `DecodeLimits` caps the
 nesting depth, list sizes, integer sizes and the total size of decoded strings,

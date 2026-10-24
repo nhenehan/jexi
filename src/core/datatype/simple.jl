@@ -91,6 +91,52 @@ function write_code_points!(w::BitWriter, s::AbstractString)
     return w
 end
 
+# Restricted character sets (https://www.w3.org/TR/exi/#restrictedCharSet):
+# each character is an n-bit index into the alphabet, n = ceil(log2(N + 1)) for
+# N characters; index N escapes a character outside it, whose code point follows.
+
+"""Writes the characters of `s` against `alphabet` (its characters in code point order)."""
+function write_rcs_chars!(w::BitWriter, s::AbstractString, alphabet::String)
+    n = length(alphabet)
+    bits = ceil_log2(n + 1)
+    for c in s
+        i = 0
+        for a in alphabet
+            (a == c || a > c) && break
+            i += 1
+        end
+        if i < n && alphabet[nextind(alphabet, 0, i + 1)] == c
+            write_nbit_unsigned!(w, UInt64(i), bits)
+        else
+            write_nbit_unsigned!(w, UInt64(n), bits)
+            write_unsigned!(w, UInt64(codepoint(c)))
+        end
+    end
+    return w
+end
+
+"""Reads `count` characters written against `alphabet`; same checks as `read_chars!`."""
+function read_rcs_string!(r::BitReader, count::Integer, alphabet::String)
+    n = length(alphabet)
+    bits = ceil_log2(n + 1)
+    out = IOBuffer(; sizehint = Int(min(count, UInt64(1024))))
+    for _ in 1:count
+        i = read_nbit_unsigned!(r, bits)
+        if i < n
+            print(out, alphabet[nextind(alphabet, 0, Int(i) + 1)])
+        elseif i == n
+            cp = read_unsigned!(r)
+            if cp > 0x10ffff || !isvalid(Char, UInt32(cp))
+                throw(ValueError("String", "invalid code point $cp"))
+            end
+            print(out, Char(UInt32(cp)))
+        else
+            throw(ValueError("String", "restricted character index $i is past the escape $n"))
+        end
+    end
+    return String(take!(out))
+end
+
 """Writes a string: character count, then the code points."""
 function write_string!(w::BitWriter, s::AbstractString)
     isvalid(s) || throw(ValueError("String", "text is not valid UTF-8"))

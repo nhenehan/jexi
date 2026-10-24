@@ -46,9 +46,8 @@ from both ends.
     # Untyped character content (mixed content); a string.
     K_UNTYPED
     # A string type whose patterns give a restricted character set
-    # (https://www.w3.org/TR/exi/#restrictedCharSet). Not implemented: values
-    # of it are refused. See `K_RESTRICTED_STRING`. Added last so the numbers
-    # of the tags above stay the same.
+    # (https://www.w3.org/TR/exi/#restrictedCharSet). See `K_RESTRICTED_STRING`.
+    # Added last so the numbers of the tags above stay the same.
     K_RESTRICTED_STRING
 end
 
@@ -58,15 +57,17 @@ end
 The kind of a string type whose `xs:pattern` facets allow only a small
 alphabet: fewer than 256 characters, all in the BMP
 ([EXI 7.1.10.1](https://www.w3.org/TR/exi/#restrictedCharSet)). For such a
-type EXI writes each character as a short index into that alphabet instead of
-a full code point, so the bytes differ from a plain string.
+type EXI writes each character as an n-bit index into that alphabet instead of
+a full code point, so the bytes differ from a plain string. A character outside
+the alphabet is written as the escape index (the alphabet's size) followed by
+its code point. The string table is used as for any string.
 
-JExi does not implement that form yet. Writing the value as a plain string
-would give bytes that EXIficient and other readers decode to garbage, with no
-error. So the encoder and the decoder throw
-`UnsupportedError(FEATURE_RESTRICTED_CHARACTER_SET)` when a value of this kind
-is written or read. A schema with such a type still compiles, and documents
-that never use the type work as usual. Patterns with a large alphabet (`\\d+`,
+`set` is the `StrIdx` of the alphabet, a string of its characters in code point
+order. It is `typemax(UInt32)` when a pattern could not be read, so the
+alphabet is unknown: values of such a type are refused with
+`UnsupportedError(FEATURE_RESTRICTED_CHARACTER_SET)` when they are written or
+read, because guessing would give bytes other readers decode to garbage. A
+schema with such a type still compiles. Patterns with a large alphabet (`\\d+`,
 `.*`, `[^x]`, `\\p{L}`) are not restricted and stay plain strings.
 """ K_RESTRICTED_STRING
 
@@ -83,6 +84,7 @@ pointers), so grammar tables can hold it in flat vectors. Only the fields its
 - `set` (enumeration set index) and `item` (type index): for `K_ENUMERATION`;
   `item` alone for `K_LIST`. `item` of an enumeration is its base type, used to
   put text values in their one standard form before they are matched.
+- `set` alone for `K_RESTRICTED_STRING`: the alphabet's `StrIdx`.
 """
 struct DatatypeKind
     tag::KindTag
@@ -97,8 +99,9 @@ end
 DatatypeKind(tag::KindTag) = DatatypeKind(tag, WS_PRESERVE, DTK_DATETIME, 0x00, 0, 0, 0)
 
 string_kind(ws::WhiteSpace) = DatatypeKind(K_STRING, ws, DTK_DATETIME, 0x00, 0, 0, 0)
-restricted_string_kind(ws::WhiteSpace) =
-    DatatypeKind(K_RESTRICTED_STRING, ws, DTK_DATETIME, 0x00, 0, 0, 0)
+restricted_string_kind(ws::WhiteSpace, alphabet::Integer = typemax(UInt32)) =
+    DatatypeKind(K_RESTRICTED_STRING, ws, DTK_DATETIME, 0x00, 0, UInt32(alphabet), 0)
+has_alphabet(k::DatatypeKind) = k.set != typemax(UInt32)
 nbit_kind(min::Integer, bits::Integer) =
     DatatypeKind(K_NBIT, WS_PRESERVE, DTK_DATETIME, UInt8(bits), Int64(min), 0, 0)
 datetime_kind(k::DateTimeKind) = DatatypeKind(K_DATETIME, WS_PRESERVE, k, 0x00, 0, 0, 0)

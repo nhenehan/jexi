@@ -202,16 +202,18 @@ function step_escape!(dec::Decoder, f::Frame)
 end
 
 function read_typed_value!(dec::Decoder, kind::DatatypeKind, context::QNameId)
-    if is_string_like(kind)
-        s = read_value!(dec.strings, dec.inp, context)
+    restricted = kind.tag == K_RESTRICTED_STRING
+    # No alphabet (a pattern that did not parse): refused before the string
+    # table is touched. See `K_RESTRICTED_STRING`.
+    restricted && !has_alphabet(kind) && throw(UnsupportedError(FEATURE_RESTRICTED_CHARACTER_SET))
+    if is_string_like(kind) || restricted
+        s = read_value!(dec.strings, dec.inp, context, restricted ? gstring(dec.tables, kind.set) : nothing)
         # A string-table hit costs a few bits but can repeat a long string, so
         # the total is capped, not each string.
         dec.string_bytes += ncodeunits(s)
         dec.string_bytes > dec.max_string_bytes && throw(LimitError(:string_bytes, dec.max_string_bytes))
         return s
     end
-    # Refused before the string table is touched: see `K_RESTRICTED_STRING`.
-    kind.tag == K_RESTRICTED_STRING && throw(UnsupportedError(FEATURE_RESTRICTED_CHARACTER_SET))
     if kind.tag == K_LIST
         item_kind = datatype(dec.tables, kind.item)
         # The item count, then the items (https://www.w3.org/TR/exi/#encodingList).

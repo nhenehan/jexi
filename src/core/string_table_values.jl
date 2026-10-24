@@ -143,7 +143,14 @@ function add_value!(vp::ValuePartitions, ctx::QNameId, text::String, indexed::Bo
     return nothing
 end
 
-function write_value!(vp::ValuePartitions, w::BitWriter, ctx::QNameId, value::AbstractString)
+"""
+    write_value!(vp, w, ctx, value, alphabet = nothing)
+
+Writes a value: a hit, or the literal with its length plus two. `alphabet` is
+the restricted character set of the value's type, if it has one.
+"""
+function write_value!(vp::ValuePartitions, w::BitWriter, ctx::QNameId, value::AbstractString,
+    alphabet::Union{Nothing,String} = nothing)
     index = vp.index
     if index !== nothing && value isa String && !isempty(value) && vp.max_length === nothing && vp.capacity != 0
         # Every non-empty value is added on a miss, so one hash finds the value
@@ -156,7 +163,7 @@ function write_value!(vp::ValuePartitions, w::BitWriter, ctx::QNameId, value::Ab
             throw(ValueError("String", "text is not valid UTF-8"))
         end
         write_unsigned!(w, UInt64(length(value)) + 2)
-        write_code_points!(w, value)
+        alphabet === nothing ? write_code_points!(w, value) : write_rcs_chars!(w, value, alphabet)
         add_value!(vp, ctx, value, true)
         return w
     end
@@ -165,7 +172,7 @@ function write_value!(vp::ValuePartitions, w::BitWriter, ctx::QNameId, value::Ab
     isvalid(value) || throw(ValueError("String", "text is not valid UTF-8"))
     len = length(value)
     write_unsigned!(w, UInt64(len) + 2)
-    write_code_points!(w, value)
+    alphabet === nothing ? write_code_points!(w, value) : write_rcs_chars!(w, value, alphabet)
     is_addable(vp, len) && add_value!(vp, ctx, String(value))
     return w
 end
@@ -181,7 +188,7 @@ function write_hit!(vp::ValuePartitions, w::BitWriter, ctx::QNameId, idx::UInt32
     return write_nbit_unsigned!(w, UInt64(e.global_id), ceil_log2(global_count(vp)))
 end
 
-function read_value!(vp::ValuePartitions, r::BitReader, ctx::QNameId)
+function read_value!(vp::ValuePartitions, r::BitReader, ctx::QNameId, alphabet::Union{Nothing,String} = nothing)
     v = read_unsigned!(r)
     if v == 0
         lid = read_nbit_unsigned!(r, ceil_log2(local_count(vp, ctx)))
@@ -197,7 +204,7 @@ function read_value!(vp::ValuePartitions, r::BitReader, ctx::QNameId)
         return vp.entries[Int(idx) + 1].text
     end
     len = v - 2
-    s = read_chars_string!(r, len, vp.scratch)
+    s = alphabet === nothing ? read_chars_string!(r, len, vp.scratch) : read_rcs_string!(r, len, alphabet)
     is_addable(vp, len) || return s
     index = vp.index
     if index === nothing

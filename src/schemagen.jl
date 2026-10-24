@@ -56,7 +56,8 @@ term(t::J.Terminal) = "J.Terminal(J.$(t.kind), $(t.a), $(t.b), $(t.c))"
 function kind(k::J.DatatypeKind)
     t = k.tag
     t == J.K_STRING && return "J.string_kind(J.$(k.whitespace))"
-    t == J.K_RESTRICTED_STRING && return "J.restricted_string_kind(J.$(k.whitespace))"
+    t == J.K_RESTRICTED_STRING && return J.has_alphabet(k) ?
+        "J.restricted_string_kind(J.$(k.whitespace), $(Int(k.set)))" : "J.restricted_string_kind(J.$(k.whitespace))"
     t == J.K_NBIT && return "J.nbit_kind($(k.min), $(Int(k.bits)))"
     t == J.K_DATETIME && return "J.datetime_kind(J.$(k.datetime))"
     t == J.K_ENUMERATION && return "J.enum_kind($(idx(k.set)), $(idx(k.item)))"
