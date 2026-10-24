@@ -322,7 +322,7 @@ end
                 (r_type("[ -~]*") * r_elem, "<r>Hello, World! ~</r>", nothing,
                  "8008a88b3264f1801bcfa53220101780", "80001128454c4c4f0c00374f524c4401005e"))
             g = J.compile_string(xs(schema))
-            @test occursin("RestrictedString", J.grammar_listing(g))
+            @test occursin(r"RestrictedString \{ whitespace: \w+, alphabet: Some\(\d+\) \}", J.grammar_listing(g))
             for (o, hex) in ((bp, hex_bp), (ba, hex_ba))
                 @test bytes2hex(J.encode_xml(xml, g; options = o)) == hex
                 @test J.decode_to_xml(hex2bytes(hex), g; options = o) == something(decoded, xml)
@@ -354,7 +354,7 @@ end
 
         # A pattern that does not parse: no alphabet, so values are refused.
         g = J.compile_string(restricted("xs:string", "[a-"))
-        @test occursin("RestrictedString", J.grammar_listing(g))
+        @test occursin("RestrictedString { whitespace: Preserve, alphabet: None }", J.grammar_listing(g))
         @test_throws refused J.encode_xml("<r>abc</r>", g)
         bytes = J.encode_xml("<r>abc</r>", J.compile_string(plain("xs:string")))
         @test_throws refused J.decode_to_xml(bytes, g; options = bp)

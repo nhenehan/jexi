@@ -72,7 +72,8 @@ const DTK_DEBUG = ("DateTime", "Date", "Time", "GYear", "GYearMonth", "GMonth", 
 function rust_debug(k::DatatypeKind)
     t = k.tag
     t == K_STRING && return "String { whitespace: $(WS_DEBUG[k.whitespace]) }"
-    t == K_RESTRICTED_STRING && return "RestrictedString { whitespace: $(WS_DEBUG[k.whitespace]) }"
+    t == K_RESTRICTED_STRING && return "RestrictedString { whitespace: $(WS_DEBUG[k.whitespace]), alphabet: " *
+        (has_alphabet(k) ? "Some($(Int(k.set)))" : "None") * " }"
     t == K_BOOLEAN && return "Boolean"
     t == K_BOOLEAN_PATTERN && return "BooleanPattern"
     t == K_INTEGER && return "Integer"
