@@ -87,7 +87,10 @@ function reset!(dec::Decoder{V}, bytes::V) where {V}
             given === nothing && throw(HeaderError("stream carries no options and none were given out of band"))
             given
         end
-        opts === dec.options || validate_options(opts)
+        if opts !== dec.options
+            validate_options(opts)
+            check_schema_id(opts.schema_id, dec.tables.schema_id)
+        end
         dec.header = info
     end
     is_byte_aligned(opts) && set_byte_aligned!(r, true)

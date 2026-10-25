@@ -43,7 +43,7 @@ non-strict: refused as unsupported
 | [Bit-packed](glossary.md#bit-packed-byte-aligned), options out of band | Both ends are yours. This is the smallest. |
 | Options in the header | Readers should not need to be told the options. For strict options the document is only a few bits, so here the size does not change. |
 | Cookie | People or tools may need to recognize the file. The `24 45 58 49` above is `$EXI`. |
-| `schema_id` | Readers should be able to check they have the right schema. |
+| `schema_id` | Readers should be able to check they have the right schema. Name the tables with the same id (`with_schema_id`), and the decoder refuses a stream that names another schema. |
 | Byte-aligned | You are debugging. Text like `4f 52 44` (`ORD`) shows up in a hex dump. |
 
 JExi refuses options it does not support when you build the encoder, so you

@@ -12,7 +12,8 @@ import JExi
 include("common.jl")
 
 # ANCHOR: main
-tables = JExi.compile_files(data("order.xsd"))
+# Named, so a decoder can check a stream's schemaId against it.
+tables = JExi.with_schema_id(JExi.compile_files(data("order.xsd")), "urn:rexi:interop:order")
 xml = read(data("order.xml"), String)
 
 plain = JExi.HeaderConfig()

@@ -59,7 +59,8 @@ end
 
 function check_fixtures(tables_for)
     @testset "$(c.name)" for c in interop_cases()
-        tables = tables_for(c)
+        # Named after the case, as the strict-bp-opts streams' schemaId says.
+        tables = J.with_schema_id(tables_for(c), c.name)
         xml = read(c.xml, String)
         @testset "$(p.name)" for p in PROFILES
             expected = reference(c, p)

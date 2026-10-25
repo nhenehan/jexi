@@ -19,7 +19,8 @@ end
     Decoder(bytes, tables; options = nothing, limits = DecodeLimits())
 
 A decoder for one stream over the grammar tables `tables`. `options` are the
-options agreed out of band; they are needed when the header carries none.
+options agreed out of band; they are needed when the header carries none. The
+options' `schemaId` must name `tables` (see [`check_schema_id`](@ref)).
 `limits` caps what a hostile stream can make the decoder do; going over a cap
 throws a `LimitError` (see `DecodeLimits`).
 """
@@ -61,6 +62,7 @@ function Decoder(bytes::AbstractVector{UInt8}, tables::GrammarSet; options::Unio
         options
     end
     validate_options(opts)
+    check_schema_id(opts.schema_id, tables.schema_id)
     is_byte_aligned(opts) && set_byte_aligned!(r, true)
     dec = decoder_for_body(r, tables, opts, limits)
     dec.header = info

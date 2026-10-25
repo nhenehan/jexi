@@ -41,6 +41,48 @@ Base.@kwdef struct ExiOptions
     datatype_representation_map::Bool = false
 end
 
+"""
+    SchemaIdError(stream, tables)
+
+The stream's `schemaId` option does not name the schema of the grammar tables
+it is decoded with (https://www.w3.org/TR/exi/#key-schemaIdOption). `stream` is
+what the options say ([`SCHEMA_ID_NIL`](@ref) or a string), and `tables` the
+tables' own id (`nothing` if they have none). See [`check_schema_id`](@ref).
+"""
+struct SchemaIdError <: ExiError
+    stream::Union{SchemaIdNil,String}
+    tables::Union{Nothing,String}
+end
+
+function Base.showerror(io::IO, e::SchemaIdError)
+    print(io, "schemaId mismatch: the stream names ")
+    s = e.stream
+    print(io, s isa SchemaIdNil ? "no schema (nil)" : isempty(s) ? "the built-in types (\"\")" : repr(s))
+    print(io, e.tables === nothing ? ", the grammar has no schemaId" : ", the grammar is " * repr(e.tables))
+end
+
+"""
+    check_schema_id(stream, tables)
+
+Checks a stream's `schemaId` option (`nothing`, [`SCHEMA_ID_NIL`](@ref) or a
+string) against the `schemaId` of the tables that will decode it (`nothing` or
+a string), and throws a [`SchemaIdError`](@ref) if they do not match:
+
+- absent (`nothing`): the schema was agreed out of band; nothing to check.
+- `xsi:nil="true"` (no schema, built-in grammars): always refused, because
+  JExi's tables are schema-informed.
+- `""` (built-in types only) and any other value: the tables' id must be
+  exactly that string. Tables with no id are refused, because a stream that
+  names its schema cannot be checked against tables that do not.
+
+rexi applies the same rule (`rexi_core::header::check_schema_id`).
+"""
+function check_schema_id(stream::Union{Nothing,SchemaIdNil,String}, tables::Union{Nothing,String})
+    stream === nothing && return nothing
+    stream isa String && stream == tables && return nothing
+    throw(SchemaIdError(stream, tables))
+end
+
 """Strict options with everything else at its default; keywords change other fields."""
 strict_options(; kw...) = ExiOptions(; strict = true, kw...)
 

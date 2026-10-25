@@ -212,6 +212,17 @@ GrammarSet(strings, uris, prefixes, local_names, productions, rules, grammars, e
     GrammarSet(strings, uris, prefixes, local_names, productions, rules, grammars, elements, global_elements,
         global_attributes, types, enum_sets, enum_values, schema_id, GrammarCache())
 
+"""
+    with_schema_id(tables::GrammarSet, id::AbstractString) -> GrammarSet
+
+The same tables (shared, not copied) going by `id`, which a decoder checks the
+stream's `schemaId` against (see [`check_schema_id`](@ref)). Tables compiled
+from XSD have no id until given one here.
+"""
+with_schema_id(g::GrammarSet, id::AbstractString) =
+    GrammarSet(g.strings, g.uris, g.prefixes, g.local_names, g.productions, g.rules, g.grammars, g.elements,
+        g.global_elements, g.global_attributes, g.types, g.enum_sets, g.enum_values, String(id), g.cache)
+
 """An empty set of tables (no schema)."""
 empty_grammar_set() = GrammarSet(String[], UriEntry[], StrIdx[], StrIdx[], Production[], Rule[],
     Grammar[], ElementDecl[], ElemIdx[], GlobalAttribute[], TypeDecl[], Span[], StrIdx[], nothing)

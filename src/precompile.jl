@@ -26,7 +26,7 @@ using PrecompileTools: @setup_workload, @compile_workload
       <a xsi:type="More"><s>three</s><f>2.5E1</f><t>2026-10-18T12:00:00Z</t><b>true</b>
         <h>CAFE</h><l>1 2 3</l><e>y</e></a></r>"""
     @compile_workload begin
-        g = compile_string(xsd)
+        g = with_schema_id(compile_string(xsd), "p")
         for o in (strict_options(), strict_options(alignment = ALIGN_BYTE_ALIGNED),
             strict_options(schema_id = "p", value_max_length = 8, value_partition_capacity = 4))
             for h in (HeaderConfig(), HeaderConfig(include_options = true, cookie = true))

@@ -96,7 +96,8 @@ end
         enc = J.Encoder(J.OPTIONS_GRAMMARS, o; header = J.HeaderConfig(cookie = true, include_options = true))
         foreach(e -> push!(enc, e), events)
         bytes = J.finish!(enc)
-        dec = J.Decoder(bytes, J.OPTIONS_GRAMMARS)
+        @test_throws J.SchemaIdError J.Decoder(bytes, J.OPTIONS_GRAMMARS)
+        dec = J.Decoder(bytes, J.with_schema_id(J.OPTIONS_GRAMMARS, "x"))
         @test dec.options == o && dec.header.cookie
         @test collect(dec) == events
     end
@@ -126,5 +127,49 @@ end
         @test_throws J.UnsupportedError(J.FEATURE_PRESERVE_COMMENTS) push!(enc, J.Comment("x"))
         # Truncated input.
         @test_throws J.TruncatedError collect(J.Decoder(UInt8[0x80], J.OPTIONS_GRAMMARS; options = J.strict_options()))
+    end
+
+    # The same table as rexi-core's tests/header_options.rs.
+    @testset "schemaId is checked against the tables" begin
+        cases = [(nothing, nothing, true), (nothing, "urn:a", true), ("urn:a", "urn:a", true),
+            ("urn:a", "urn:b", false), ("urn:a", nothing, false), (J.SCHEMA_ID_NIL, "urn:a", false),
+            (J.SCHEMA_ID_NIL, nothing, false), ("", "", true), ("", "urn:a", false), ("", nothing, false)]
+        for (stream, tables, ok) in cases
+            if ok
+                @test J.check_schema_id(stream, tables) === nothing
+            else
+                @test_throws J.SchemaIdError(stream, tables) J.check_schema_id(stream, tables)
+            end
+        end
+        @test sprint(showerror, J.SchemaIdError("urn:a", "urn:b")) ==
+              "schemaId mismatch: the stream names \"urn:a\", the grammar is \"urn:b\""
+        @test sprint(showerror, J.SchemaIdError(J.SCHEMA_ID_NIL, nothing)) ==
+              "schemaId mismatch: the stream names no schema (nil), the grammar has no schemaId"
+    end
+
+    # rexi-core's decoder_checks_schema_id: an options document whose body is
+    # another options document, decoded with the options grammar under a name.
+    @testset "the decoder checks schemaId" begin
+        named(id) = id === nothing ? J.OPTIONS_GRAMMARS : J.with_schema_id(J.OPTIONS_GRAMMARS, id)
+        function stream(o; include_options = true)
+            w = J.BitWriter()
+            J.write_header_bits!(w, J.HeaderConfig(include_options = include_options))
+            include_options && J.write_options_document!(w, o)
+            J.write_options_document!(w, J.strict_options())
+            return J.finish!(w)
+        end
+        a = stream(J.strict_options(schema_id = "urn:a"))
+        @test length(collect(J.Decoder(a, named("urn:a")))) > 2
+        @test_throws J.SchemaIdError J.Decoder(a, named("urn:b"))
+        @test_throws J.SchemaIdError J.Decoder(a, named(nothing))
+        @test_throws J.SchemaIdError J.Decoder(stream(J.strict_options(schema_id = J.SCHEMA_ID_NIL)), named("urn:a"))
+        @test J.Decoder(stream(J.strict_options()), named(nothing)) isa J.Decoder
+        bare = stream(nothing; include_options = false)
+        oob = J.strict_options(schema_id = "urn:a")
+        @test J.Decoder(bare, named("urn:a"); options = oob) isa J.Decoder
+        @test_throws J.SchemaIdError J.Decoder(bare, named("urn:b"); options = oob)
+        # reset! checks the next stream's header too.
+        dec = J.Decoder(stream(J.strict_options()), named("urn:b"))
+        @test_throws J.SchemaIdError J.reset!(dec, a)
     end
 end

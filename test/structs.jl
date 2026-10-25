@@ -279,7 +279,8 @@ end
         @testset "$(c.name) ($label tables)" for c in interop_cases()
             haskey(models, c.name) || continue
             value = models[c.name]
-            tables = tables_for(c)
+            # Named after the case, as the strict-bp-opts streams' schemaId says.
+            tables = J.with_schema_id(tables_for(c), c.name)
             for p in PROFILES
                 expected = reference(c, p)
                 actual = J.to_exi(value, tables; options = p.options(c), header = p.header)

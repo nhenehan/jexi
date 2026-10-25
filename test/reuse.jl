@@ -15,7 +15,8 @@ end
 
 @testset "reset! (reuse)" begin
     @testset "$(c.name)" for c in interop_cases()
-        tables = J.compile_files(c.xsds...)
+        # Named after the case, as the strict-bp-opts streams' schemaId says.
+        tables = J.with_schema_id(J.compile_files(c.xsds...), c.name)
         bp, opts_in_stream, ba = PROFILES
         refs = Dict(p.name => reference(c, p) for p in PROFILES)
 

@@ -28,7 +28,8 @@ the stream carries none):
   --alignment bit-packed|byte-aligned
   --include-options                 write the EXI options document into the header
   --cookie                          write the \$EXI cookie
-  --schema-id ID | --schema-id-nil  schemaId option (default: absent)
+  --schema-id ID | --schema-id-nil  schemaId option (default: absent); --schema-id also
+                                    names the schema, which a stream's schemaId must match
   --value-max-length N
   --value-partition-capacity N
 
@@ -176,7 +177,10 @@ end
 
 function tables_of(a::Args)
     isempty(a.xsd) && throw(UsageError("--xsd is required"))
-    return J.compile_files(a.xsd...; load_options = J.SchemaLoadOptions(; root = a.schema_root))
+    tables = J.compile_files(a.xsd...; load_options = J.SchemaLoadOptions(; root = a.schema_root))
+    # `--schema-id` names the schema too: a decoder checks the stream's schemaId against it.
+    sid = a.schema_id
+    return sid isa String ? J.with_schema_id(tables, sid) : tables
 end
 
 function positional(a::Args, n::Int, names::AbstractString)
