@@ -1,47 +1,34 @@
 # Performance (0.1)
 
-Measured in October 2026 on an AMD Ryzen 7 7840U, Linux 7.1.5, Julia 1.12.7,
-with the rexi-interop harness. Each library times itself in-process: 2000
-warm-up runs, then 2000 timed runs. The tables give the median in µs. Schema
-compilation is not included. rexi is a release build with rustc 1.99.
-EXIficient 1.0.7 runs in-process on Java 25.
-
-**Longer warm-up.** Java and Julia compile code while they run, so 2000 warm-up
-runs were not always enough. With at least 3 s of warm-up per cell,
-EXIficient decodes faster. jexi then ties it on P0 S3 (0.7), P0 R5 (1.6) and
-P2 U1 (6.2), and is faster everywhere else. Encoding from XML stays faster
-than EXIficient on every case. The smallest margin is U1: 24.6 against 28.3 in
-P0, and 22.8 against 27.8 in P2. jexi's own numbers stay within noise of the
-tables below, except a few cells with wide spreads from garbage-collector
-pauses.
+Measured on 2026-11-05 on an AMD Ryzen 7 7840U, Linux 7.2.6, Julia 1.12.7,
+with the rexi-interop harness: jexi e336de8, and rexi b2ab2a8 as a release
+build with rustc 1.99. Each library times itself in-process: a warm-up of at
+least 2000 runs and 3 s, then 2000 timed runs. The tables give the median in
+µs. Schema compilation is not included. The harness's `reports/latest.md` has
+the same runs with p10–p90.
 
 ## Decoding (median µs)
 
-| case | P0 EXIficient | P0 rexi | P0 jexi | P2 EXIficient | P2 rexi | P2 jexi |
-|---|---|---|---|---|---|---|
-| S1 order | 29.1 | 1.7 | 0.9 | 2.1 | 1.6 | 0.8 |
-| S2 telemetry | 5.6 | 1.6 | 0.9 | 2.2 | 1.5 | 0.8 |
-| S3 inheritance | 2.2 | 1.1 | 0.6 | 0.8 | 1.1 | 0.5 |
-| S4 cross-schema | 1.3 | 1.3 | 0.6 | 1.4 | 1.3 | 0.5 |
-| S5 polymorphic | 1.1 | 1.7 | 0.8 | 1.9 | 1.5 | 0.7 |
-| R1 | 2.7 | 2.5 | 1.3 | 2.0 | 2.4 | 1.2 |
-| R2 | 2.6 | 3.0 | 1.9 | 4.0 | 2.9 | 1.8 |
-| R3 | 1.3 | 1.8 | 1.1 | 1.4 | 1.8 | 0.9 |
-| R4 | 1.0 | 1.5 | 0.7 | 1.1 | 1.5 | 0.7 |
-| R5 | 1.7 | 2.5 | 1.5 | 1.8 | 2.2 | 1.4 |
-| X1 xsi:type | 4.5 | 2.0 | 1.2 | 1.9 | 1.9 | 1.1 |
-| X2 xsi:nil | 1.6 | 1.9 | 1.2 | 1.6 | 1.9 | 1.1 |
-| U1 multilingual | 69.5 | 9.1 | 6.1 | 6.2 | 8.5 | 5.8 |
-| B1 binary | 0.7 | 0.9 | 0.5 | 1.1 | 0.8 | 0.5 |
+| case | P0 rexi | P0 jexi | P2 rexi | P2 jexi |
+|---|---|---|---|---|
+| S1 order | 0.8 | 0.9 | 0.8 | 0.9 |
+| S2 telemetry | 0.8 | 0.8 | 0.8 | 0.8 |
+| S3 inheritance | 0.5 | 0.6 | 0.5 | 0.5 |
+| S4 cross-schema | 0.6 | 0.6 | 0.6 | 0.5 |
+| S5 polymorphic | 0.7 | 0.8 | 0.7 | 0.7 |
+| R1 | 1.2 | 1.3 | 1.2 | 1.2 |
+| R2 | 1.6 | 1.8 | 1.5 | 1.7 |
+| R3 | 0.9 | 1.0 | 0.8 | 0.9 |
+| R4 | 0.7 | 0.8 | 0.7 | 0.7 |
+| R5 | 1.1 | 1.4 | 1.0 | 1.3 |
+| X1 xsi:type | 1.2 | 1.2 | 1.1 | 1.1 |
+| X2 xsi:nil | 1.1 | 1.1 | 1.1 | 1.1 |
+| U1 multilingual | 4.4 | 5.9 | 4.0 | 5.4 |
+| B1 binary | 0.4 | 0.5 | 0.4 | 0.5 |
 
-EXIficient's P0 S1 and U1 decode medians (29.1, 69.5) are outliers in this
-run, with wide spreads (p10 4.0 and 7.7). Another run gave 4.4 and 8.7.
-
-jexi's median is below EXIficient's and rexi's in every cell. There are two
-caveats. First, the margin over EXIficient is small on U1 in P2 (5.8 against
-6.2), and EXIficient's U1 varies by about ±1 µs between runs. Second, jexi's
-p90 is higher than EXIficient's because of garbage-collector pauses, so the win
-is on medians.
+rexi's median is at or below jexi's in every cell but P2 S4. jexi's p90 is
+higher than its median by more than rexi's is, because of garbage-collector
+pauses.
 
 These changes made the decoder about 2.3× faster than the first working
 version:
@@ -61,27 +48,25 @@ stored in value entries, presized vectors, a larger scan limit, and flat
 
 ## Encoding from XML (median µs, parsing included)
 
-| case | P0 EXIficient | P0 rexi | P0 jexi | P2 EXIficient | P2 rexi | P2 jexi |
-|---|---|---|---|---|---|---|
-| S1 order | 36.0 | 6.6 | 4.9 | 14.6 | 6.2 | 4.9 |
-| S2 telemetry | 32.0 | 6.1 | 5.3 | 13.1 | 5.7 | 5.0 |
-| S3 inheritance | 10.8 | 3.6 | 3.0 | 11.0 | 3.5 | 3.1 |
-| S4 cross-schema | 11.8 | 4.4 | 3.5 | 12.1 | 4.3 | 3.5 |
-| S5 polymorphic | 12.4 | 5.5 | 4.3 | 12.3 | 5.4 | 4.0 |
-| R1 | 14.6 | 8.7 | 6.7 | 15.0 | 8.5 | 7.0 |
-| R2 | 20.5 | 13.6 | 10.0 | 17.4 | 12.4 | 9.6 |
-| R3 | 12.3 | 5.5 | 4.5 | 12.4 | 5.1 | 4.1 |
-| R4 | 13.1 | 5.7 | 4.3 | 13.2 | 5.4 | 4.5 |
-| R5 | 15.3 | 8.7 | 6.6 | 14.7 | 8.5 | 6.8 |
-| X1 xsi:type | 16.7 | 8.7 | 7.7 | 17.5 | 8.4 | 7.6 |
-| X2 xsi:nil | 15.9 | 9.1 | 7.9 | 15.7 | 9.0 | 7.4 |
-| U1 multilingual | 28.3 | 24.3 | 20.2 | 26.9 | 24.1 | 21.3 |
-| B1 binary | 10.7 | 3.3 | 3.1 | 10.6 | 3.3 | 3.2 |
+| case | P0 rexi | P0 jexi | P2 rexi | P2 jexi |
+|---|---|---|---|---|
+| S1 order | 3.2 | 4.8 | 3.1 | 5.1 |
+| S2 telemetry | 3.1 | 5.2 | 3.0 | 5.2 |
+| S3 inheritance | 1.9 | 2.9 | 1.7 | 3.2 |
+| S4 cross-schema | 2.4 | 3.3 | 2.4 | 3.4 |
+| S5 polymorphic | 2.7 | 4.2 | 2.8 | 4.2 |
+| R1 | 4.7 | 6.5 | 4.2 | 7.2 |
+| R2 | 6.6 | 9.1 | 6.1 | 9.4 |
+| R3 | 3.4 | 4.0 | 2.7 | 3.9 |
+| R4 | 3.4 | 4.4 | 2.7 | 4.2 |
+| R5 | 4.5 | 6.5 | 4.2 | 6.4 |
+| X1 xsi:type | 4.7 | 7.2 | 4.6 | 7.6 |
+| X2 xsi:nil | 4.6 | 7.7 | 4.7 | 7.8 |
+| U1 multilingual | 14.9 | 21.1 | 14.5 | 19.7 |
+| B1 binary | 1.7 | 3.2 | 1.7 | 3.1 |
 
-jexi's median is below EXIficient's and rexi's in every cell. The smallest
-margin over EXIficient is U1: 20.2 against 28.3 in P0, and 21.3 against 26.9
-in P2. Encoding from events (no XML parsing) takes 1.7–6.1 µs (15 on U1),
-which is 1.0–1.8× rexi's time.
+jexi takes 1.2–1.9× rexi's time. Encoding from events (no XML parsing) takes
+1.6–5.9 µs (14.3–14.5 on U1), which is 1.2–2.1× rexi's time.
 
 These changes made encoding from XML about 2× faster than the first working
 version: from 178.5 to about 90 µs summed over the 14 cases, and from 37 to
