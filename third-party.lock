@@ -1,8 +1,9 @@
 # Third-party sources used by jexi's judges and fixtures, fetched by
 # scripts/fetch-third-party.sh into ${JEXI_THIRD_PARTY:-${XDG_CACHE_HOME:-~/.cache}/jexi/third_party}
 # (never into the working tree). Each line: <name> <git url, or a path relative to
-# this repository> <40-char commit>.
-# Pins change only through `scripts/fetch-third-party.sh --update <name>`.
+# this repository> <40-char commit, or a tag>.
+# Pins change through `scripts/fetch-third-party.sh --update <name>` (a commit)
+# or by writing a release tag by hand.
 #
 # exip: C reference implementation; the exipd judge and the EXIficient oracle
 #   (utils/xsd2exip).
@@ -11,4 +12,4 @@
 #   `rexi dump-grammar` listings the schema compiler is compared with.
 
 exip https://github.com/nhenehan/exip.git b2870c106f0cc88fd199208f724ce575df150444
-rexi https://github.com/nhenehan/rexi.git db7bb96f99fbf48b2b69235c214c42053cda99cb
+rexi https://github.com/nhenehan/rexi.git v0.2.0
