@@ -39,7 +39,7 @@ JExi is not in the Julia registry yet. Add it from GitHub:
 
 ```julia
 using Pkg
-Pkg.add(url = "https://github.com/nhenehan/jexi", rev = "v0.1.0")
+Pkg.add(url = "https://github.com/nhenehan/jexi", rev = "v0.2.0")
 ```
 
 To work on JExi itself, use a local copy instead:
@@ -150,7 +150,7 @@ BSD-3-Clause, see [LICENSE](LICENSE).
 
 ## For maintainers
 
-**Status.** 0.1.0, the same scope as rexi 0.1. The interop
+**Status.** 0.2.0, the same scope as rexi 0.2. The interop
 fixtures (EXIficient 1.0.7 reference bytes) encode bit for bit in the strict
 bit-packed, bit-packed with options, and byte-aligned profiles, decode to the
 oracle's event stream, re-encode from decoded events, and are accepted by

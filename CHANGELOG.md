@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 0.2.0
 
 - The decoder checks the stream's `schemaId` option against the tables'
   ([EXI 5.4](https://www.w3.org/TR/exi/#options)), in `Decoder` and in

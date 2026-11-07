@@ -9,7 +9,7 @@ Julia 1.10 or newer.
 
 ```julia
 using Pkg
-Pkg.add(url = "https://github.com/nhenehan/jexi", rev = "v0.1.0")
+Pkg.add(url = "https://github.com/nhenehan/jexi", rev = "v0.2.0")
 ```
 
 To work on JExi itself, use a local copy instead:
